@@ -5,63 +5,26 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 import numpy as np
 
-class LinearRegressionModel(nn.Module):
+class LinearClassificationModel(nn.Module):
 
     def __init__(self, input_dim, output_dim):
-        super(LinearRegressionModel, self).__init__() 
+        super(LinearClassificationModel, self).__init__() 
         self.linear = nn.Linear(input_dim, output_dim, bias=True)
-        
-    def forward(self, x):
-        # Here the forward pass is simply a linear function
-        out = self.linear(x)
-        return out
+        self.logprob = nn.LogSoftmax(dim=1)                 # -Log(Softmax probability).
 
-
-class SingleHiddenModel(nn.Module):
-
-    def __init__(self, input_dim, hidden_list, output_dim):
-
-        super(SingleHiddenModel, self).__init__() 
-        # Calling Super Class's constructor
-        self.linear1 = nn.Linear(input_dim, hidden_dim[0], bias=True)
-        self.act = nn.Sigmoid()
-        self.linear2 = nn.Linear(hidden_dim[-1], output_dim, bias=True)
-        # nn.linear is defined in nn.Module
 
     def forward(self, x):
-        # Here the forward pass is simply a linear function
-        out = self.linear1(x)
-        out = self.act(out)
-        out = self.linear2(out)
-        return out
-
-
-
-class Model(nn.Module):
-
-    def __init__(self):
-
-        super(Model, self).__init__() 
-        # Calling Super Class's constructor
-        self.linear1 = nn.Linear(4, 8, bias=True)
-        self.linear2 = nn.Linear(8, 4, bias=True)
-        self.linear3 = nn.Linear(4, 2, bias=True)
-        self.act = nn.ReLU()
-
-    def forward(self, x):
-        x = self.act(self.linear1(x))
-        x = self.act(self.linear2(x))
-        x = self.linear3(x)             
+        x = self.linear(x)
+        x = self.logprob(x)
         return x
-
 
 
 class NNClassifier(object):
     """docstring for NeuralNetworkPredictor"""
-    def __init__(self, l_rate = 0.00000001, epochs = 400000):
+    def __init__(self, l_rate = 0.01, epochs = 1000):
         super(NNClassifier, self).__init__()
-        self.model = Model()
-        self.criterion = nn.MSELoss()
+        self.model = LinearClassificationModel(4, 543)
+        self.criterion = nn.NLLLoss()
         self.optimiser = torch.optim.SGD(self.model.parameters(), lr = l_rate) 
         self.epochs = epochs
 
@@ -78,25 +41,24 @@ class NNClassifier(object):
         data = np.array(data.astype(float))
         target = np.array(target.astype(float))
 
-        for epoch in range(self.epochs):
+        for epoch in range(epochs):
 
             epoch +=1
             #increase the number of epochs by 1 every time
-            inputs = Variable(torch.from_numpy(data))
-            labels = Variable(torch.from_numpy(target))
 
-            inputs = torch.tensor(inputs, dtype=torch.float)
-            labels = torch.tensor(labels, dtype=torch.float)
+            inputs = Variable(torch.Tensor(data), requires_grad=False)
+            labels = Variable(torch.Tensor(target).long(), requires_grad=False)
 
-            #clear grads
-            self.optimiser.zero_grad()
+
+            #clear grads as discussed in prev post
+            optimiser.zero_grad()
             #forward to get predicted values
-            outputs = self.model.forward(inputs)
-            loss = self.criterion(outputs, labels)
+            outputs = model.forward(inputs)
+            loss = criterion(outputs, labels.view(-1))
             loss.backward()# back props
-            self.optimiser.step()# update the parameters
-            if epoch < 1000: print('epoch {}, loss {}'.format(epoch,loss.item()))
-            if epoch > 1000 and random.randint(0, 100) == 1: print('epoch {}, loss {}'.format(epoch,loss.item()))
+            optimiser.step()# update the parameters
+            if k_index == 0 and epoch < 1000: print('epoch {}, loss {}'.format(epoch,loss.item()))
+            if k_index == 0 and epoch > 1000 and random.randint(0, 100) == 1: print('epoch {}, loss {}'.format(epoch,loss.item()))
 
     def predict(self, data):
         data = np.array(data.astype(float))
