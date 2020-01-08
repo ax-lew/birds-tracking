@@ -61,10 +61,10 @@ class EmissionsNormalizer(object):
 		regre_data = pd.DataFrame(all_emissions.map(lambda x: x['data']).collect())
 		return regre_data, regre_target
 
-
-
-		
-
+	def get_classification_dataframes(self, all_emissions):
+		target = pd.DataFrame(all_emissions.map(lambda x: x['point']).collect())
+		data = pd.DataFrame(all_emissions.map(lambda x: x['data']).collect())
+		return data, target
 
 
 
