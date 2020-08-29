@@ -1,2 +1,2 @@
-source ~/py3/bin/activate
+source py3/bin/activate
 jupyter notebook
